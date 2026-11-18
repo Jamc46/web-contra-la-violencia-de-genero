@@ -35,6 +35,9 @@ Cada archivo ya existe con un comentario que indica qué tarea lo rellena.
 │   ├── img/qr.png          T10 · QR de /participa
 │   └── video/video.mp4     T08 · vídeo de concienciación
 ├── docs/tareas/            Enunciado de cada tarea (T01–T10)
+├── docs/t10/               T10 · vista previa de estilos.css y lista de pruebas en móviles
+├── herramientas/
+│   └── generar_qr.py       T10 · regenera static/img/qr.png (sin dependencias)
 ├── datos/                  Se crea solo: aquí vive 25n.db (no se sube a git)
 ├── requirements.txt
 └── .env.example            Variables de entorno (copiar a .env)
