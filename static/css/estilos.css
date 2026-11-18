@@ -9,7 +9,7 @@
  *  - T04: .vista (cada <section>), .boton-pantalla-completa
  *  - T07: .burbuja, .burbuja--nueva, variable --retraso (desfase de la animación)
  *  - T08: #video25n
- *  - T09: .tarjetas (contenedor), .tarjeta, .tarjeta__titulo, .tarjeta__texto, .foro-vacio
+ *  - T09: las .foro-* que crea foro.js (ver la sección del foro más abajo)
  */
 
 /* ---------- Paleta y medidas ---------- */
@@ -37,7 +37,7 @@
      sale un QR de unos 30 cm, suficiente para escanear a 3–4 m. */
   --qr-tamano: 26vh;
   /* Espacio que dejan libre mural y foro para no quedar tapados por el QR */
-  --qr-hueco: calc(var(--qr-tamano) + 4vh);
+  --qr-hueco: calc(var(--qr-tamano) + 4vh + var(--margen) + 3vh); /* ancho del QR + margen + aire */
 }
 
 /* ---------- Base ---------- */
@@ -73,9 +73,11 @@ body {
   padding: var(--margen);
 }
 
-/* Importante: sin esto, display:flex anularía el atributo hidden y se verían las tres a la vez */
+/* Importante: sin esto, display:flex anularía el atributo hidden y se verían las tres a la vez.
+   !important porque otros estilos (p. ej. los que inyecta foro.js en #vista-foro) también
+   ponen display y, al ir con id, ganarían a esta regla. */
 .vista[hidden] {
-  display: none;
+  display: none !important;
 }
 
 /* ---------- Mural de burbujas (T07) ---------- */
@@ -139,50 +141,81 @@ body {
   background: var(--negro);
 }
 
-/* ---------- Foro de reflexiones (T09) ---------- */
-#vista-foro {
-  justify-content: center;
+/* ---------- Foro de reflexiones (T09) ----------
+ * Estructura que crea foro.js (PR #2):
+ *   #vista-foro > h2.foro-cabecera
+ *               > div.foro-tarjetas (--foro-columnas) > article.foro-tarjeta > h3.foro-titulo + p.foro-texto
+ *               > div.foro-puntos > span.foro-punto(.foro-activo)
+ *   Sin datos: div.foro-tarjetas > div.foro-vacio > p + p.foro-vacio-en
+ * foro.js inyecta además sus propios estilos con selectores "#vista-foro .foro-*".
+ * Aquí se usa "#vista-foro.vista" (un punto más de especificidad) para que mande
+ * siempre este archivo, se queden o no esos estilos inyectados. */
+#vista-foro.vista {
+  min-height: 0;
+  gap: 3vh;
+  padding: 5vh 4vw;
   padding-right: var(--qr-hueco); /* las tarjetas no pasan por debajo del QR */
 }
 
-.tarjetas {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(min(100%, 26vw), 1fr));
-  gap: var(--margen);
-  align-items: stretch;
+#vista-foro.vista .foro-cabecera {
+  margin: 0;
+  color: var(--blanco);
+  font-size: var(--texto-titulo);
+  font-weight: 800;
+  line-height: 1.1;
 }
 
-.tarjeta {
+#vista-foro.vista .foro-tarjetas {
+  flex: 1;
+  display: grid;
+  grid-template-columns: repeat(var(--foro-columnas, 3), minmax(0, 1fr));
+  gap: var(--margen);
+  align-content: center;
+  align-items: stretch;
+  transition: opacity 0.6s ease;
+}
+
+#vista-foro.vista .foro-tarjetas.foro-oculto {
+  opacity: 0;
+}
+
+#vista-foro.vista .foro-tarjeta {
   display: flex;
   flex-direction: column;
-  gap: 1.5vh;
-  padding: 3.5vh 3vh;
+  gap: 2vh;
+  max-height: 66vh;
+  padding: 3.5vh 2.2vw;
+  overflow: hidden;
+  border: 0;
   border-left: 1vh solid var(--morado-vivo);
   border-radius: var(--radio);
   background: var(--morado-oscuro);
   box-shadow: 0 0.6vh 2.5vh rgba(0, 0, 0, 0.45);
+  color: var(--blanco);
   animation: aparecer 0.6s ease-out both;
 }
 
-.tarjeta__titulo {
+#vista-foro.vista .foro-titulo {
   margin: 0;
   color: var(--lila);
   font-size: var(--texto-grande);
   font-weight: 700;
   line-height: 1.15;
   overflow-wrap: break-word;
-  /* máximo 2 líneas y «…» */
+  /* máximo 3 líneas y «…» */
   display: -webkit-box;
   -webkit-box-orient: vertical;
-  -webkit-line-clamp: 2;
-  line-clamp: 2;
+  -webkit-line-clamp: 3;
+  line-clamp: 3;
   overflow: hidden;
 }
 
-.tarjeta__texto {
+#vista-foro.vista .foro-texto {
   margin: 0;
   font-size: var(--texto-base);
+  line-height: 1.35;
   overflow-wrap: break-word;
+  white-space: pre-line;
   /* máximo 8 líneas y «…»: los textos largos se recortan */
   display: -webkit-box;
   -webkit-box-orient: vertical;
@@ -192,14 +225,49 @@ body {
 }
 
 /* Mensaje cuando no hay reflexiones aprobadas */
-.foro-vacio {
-  margin: auto;
+#vista-foro.vista .foro-vacio {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 2vh;
+  text-align: center;
+}
+
+#vista-foro.vista .foro-vacio p {
+  margin: 0;
   max-width: 20ch;
   color: var(--lila);
   font-size: var(--texto-titulo);
   font-weight: 700;
   line-height: 1.15;
-  text-align: center;
+}
+
+#vista-foro.vista .foro-vacio .foro-vacio-en {
+  color: var(--blanco);
+  font-size: var(--texto-grande);
+  font-weight: 400;
+  opacity: 0.85;
+}
+
+/* Puntos que indican la página de tarjetas */
+#vista-foro.vista .foro-puntos {
+  display: flex;
+  justify-content: center;
+  gap: 1.2vh;
+  min-height: 1.6vh;
+}
+
+#vista-foro.vista .foro-punto {
+  width: 1.6vh;
+  height: 1.6vh;
+  border-radius: 50%;
+  background: var(--lila);
+  opacity: 0.35;
+}
+
+#vista-foro.vista .foro-punto.foro-activo {
+  opacity: 1;
 }
 
 /* ---------- QR fijo (T10), visible en las tres vistas ---------- */
@@ -266,7 +334,7 @@ body {
 @media (prefers-reduced-motion: reduce) {
   .burbuja,
   .burbuja--nueva,
-  .tarjeta {
+  #vista-foro.vista .foro-tarjeta {
     animation: none;
   }
 }
